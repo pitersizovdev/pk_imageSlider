@@ -13,6 +13,8 @@ interface ImageSliderProps {
   autoplay?: number;
   dots?: boolean;
   arrows?: boolean;
+  swipeDesktop?: boolean;
+  swipeMobile?: boolean;
 }
 
 export const ImageSlider: React.FC<ImageSliderProps> = ({
@@ -20,6 +22,8 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
   autoplay,
   dots = true,
   arrows = true,
+  swipeDesktop = true,
+  swipeMobile = true,
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(1); // Start from 1 because of prepended slide
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
@@ -142,13 +146,13 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
       <div
         className={s.ImageSliderTrack}
         ref={slidesWrapperRef}
-        onMouseDown={handleDragStart}
-        onMouseMove={handleDragMove}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
-        onTouchStart={handleDragStart}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
+        onMouseDown={swipeDesktop ? handleDragStart : undefined}
+        onMouseMove={swipeDesktop ? handleDragMove : undefined}
+        onMouseUp={swipeDesktop ? handleDragEnd : undefined}
+        onMouseLeave={swipeDesktop ? handleDragEnd : undefined}
+        onTouchStart={swipeMobile ? handleDragStart : undefined}
+        onTouchMove={swipeMobile ? handleDragMove : undefined}
+        onTouchEnd={swipeMobile ? handleDragEnd : undefined}
         onTransitionEnd={handleTransitionEnd}
       >
         {clonedSlides.map((slide, index) => (
