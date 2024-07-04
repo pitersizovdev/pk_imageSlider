@@ -15,6 +15,7 @@ interface ImageSliderProps {
   arrows?: boolean;
   swipeDesktop?: boolean;
   swipeMobile?: boolean;
+  draggable?: boolean;
 }
 
 export const ImageSlider: React.FC<ImageSliderProps> = ({
@@ -24,12 +25,14 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
   arrows = true,
   swipeDesktop = true,
   swipeMobile = true,
+  draggable = true,
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(1); // Start from 1 because of prepended slide
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const slidesWrapperRef = useRef<HTMLDivElement | null>(null);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const startX = useRef<number | null>(null);
+  const diffXRef = useRef<number>(0);
   const totalSlides = React.Children.count(children);
 
   const slides = React.Children.toArray(children);
@@ -38,14 +41,12 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
   const handleTransitionEnd = useCallback(() => {
     setIsAnimating(false);
     if (currentIndex === 0) {
-      // If we reached the start (clone of last slide)
       setCurrentIndex(totalSlides); // Jump to the actual last slide
       slidesWrapperRef.current!.style.transition = "none";
       slidesWrapperRef.current!.style.transform = `translateX(-${
         totalSlides * 100
       }%)`;
     } else if (currentIndex === totalSlides + 1) {
-      // If we reached the end (clone of first slide)
       setCurrentIndex(1); // Jump to the actual first slide
       slidesWrapperRef.current!.style.transition = "none";
       slidesWrapperRef.current!.style.transform = `translateX(-100%)`;
@@ -74,39 +75,48 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
   );
 
   const handleDragStart = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
-      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    (_e: React.MouseEvent | React.TouchEvent) => {
+      const clientX = "touches" in _e ? _e.touches[0].clientX : _e.clientX;
       startX.current = clientX;
+      diffXRef.current = 0;
+      if (draggable) {
+        slidesWrapperRef.current!.style.transition = "none";
+      }
     },
-    []
+    [draggable]
   );
 
   const handleDragMove = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
-      if (!startX.current) return;
-      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-      const diffX = startX.current - clientX;
-      const maxTranslate = totalSlides * 100;
-      const newTranslate =
-        currentIndex * 100 +
-        (diffX / slidesWrapperRef.current!.clientWidth) * 100;
-      if (newTranslate > 0 || newTranslate < -maxTranslate) return;
-      slidesWrapperRef.current!.style.transition = "none";
-      slidesWrapperRef.current!.style.transform = `translateX(${newTranslate}%)`;
+    (_e: React.MouseEvent | React.TouchEvent) => {
+      if (startX.current === null) return;
+      const clientX = "touches" in _e ? _e.touches[0].clientX : _e.clientX;
+      const diffX = clientX - startX.current;
+      diffXRef.current = diffX;
+      if (draggable) {
+        const translateX =
+          -currentIndex * 100 +
+          (diffX / slidesWrapperRef.current!.clientWidth) * 100;
+        slidesWrapperRef.current!.style.transform = `translateX(${translateX}%)`;
+      }
     },
-    [currentIndex, totalSlides]
+    [currentIndex, draggable]
   );
 
   const handleDragEnd = useCallback(
-    (e: React.MouseEvent | React.TouchEvent) => {
-      if (!startX.current) return;
-      const clientX =
-        "changedTouches" in e ? e.changedTouches[0].clientX : e.clientX;
-      const diffX = startX.current - clientX;
-      if (Math.abs(diffX) > 50) {
-        if (diffX > 0) {
+    (_e: React.MouseEvent | React.TouchEvent) => {
+      if (startX.current === null) return;
+      const threshold = slidesWrapperRef.current!.clientWidth / 4;
+      if (draggable && Math.abs(diffXRef.current) > threshold) {
+        if (diffXRef.current < 0) {
           nextSlide();
         } else {
+          prevSlide();
+        }
+      } else if (!draggable) {
+        // Standard swipe logic without inertia
+        if (diffXRef.current < -threshold) {
+          nextSlide();
+        } else if (diffXRef.current > threshold) {
           prevSlide();
         }
       } else {
@@ -118,8 +128,9 @@ export const ImageSlider: React.FC<ImageSliderProps> = ({
         }%)`;
       }
       startX.current = null;
+      diffXRef.current = 0;
     },
-    [currentIndex, nextSlide, prevSlide]
+    [currentIndex, nextSlide, prevSlide, draggable]
   );
 
   useEffect(() => {

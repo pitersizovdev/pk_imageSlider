@@ -15,8 +15,9 @@ const App: React.FC = () => (
       autoplay={0} //ms
       dots={true} //true | false
       arrows={true} //true | false
-      swipeDesktop={false} //true | false
+      swipeDesktop={true} //true | false
       swipeMobile={true} //true | false
+      draggable={true} //true | false
     >
       {images.map((src, index) => (
         <img key={index} src={src} alt={`Slide ${index}`} />
