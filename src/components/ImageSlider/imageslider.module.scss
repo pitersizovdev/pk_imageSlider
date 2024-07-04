@@ -1,0 +1,66 @@
+.ImageSliderContainer {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent; /* Для Safari и Chrome на iOS */
+  -moz-user-select: none; /* Для Firefox */
+  -ms-user-select: none; /* Для Internet Explorer и Edge */
+  user-select: none; /* Стандартное свойство */
+}
+
+.ImageSliderTrack {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.ImageSliderSlide {
+  min-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    user-select: none;
+    pointer-events: none;
+  }
+}
+
+.ImageSliderArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  z-index: 1;
+  &.ImageSliderArrowLeft {
+    left: 10px;
+  }
+  &.ImageSliderArrowRight {
+    right: 10px;
+  }
+}
+
+.ImageSliderBullets {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.ImageSliderBullet {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #ddd;
+  border-radius: 50%;
+  margin: 0 5px;
+  cursor: pointer;
+  &.ImageSliderBulletActive {
+    background: #333;
+  }
+}
